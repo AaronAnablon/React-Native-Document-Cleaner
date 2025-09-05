@@ -1,6 +1,6 @@
 {
   "name": "react-native-document-scanner-ai",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "description": "High-performance document scanner with ONNX Runtime + OpenCV",
   "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
@@ -84,14 +84,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aaron/react-native-document-scanner-ai.git"
+    "url": "git+https://github.com/AaronAnablon/React-Native-Document-Cleaner.git"
   },
   "author": "Aaron <aaron@example.com> (https://github.com/aaron)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/aaron/react-native-document-scanner-ai/issues"
+    "url": "https://github.com/AaronAnablon/React-Native-Document-Cleaner/issues"
   },
-  "homepage": "https://github.com/aaron/react-native-document-scanner-ai#readme",
+  "homepage": "https://github.com/AaronAnablon/React-Native-Document-Cleaner#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
