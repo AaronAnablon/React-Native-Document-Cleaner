@@ -66,19 +66,26 @@ function hasChanges() {
 function runTests() {
   console.log('🧪 Running tests...');
   try {
-    run('yarn lint');
-    console.log('✅ Linting passed');
+    run('npm run lint');
+    console.log('✅ ESLint passed');
 
-    run('yarn typecheck');
-    console.log('✅ Type checking passed');
+    run('npm run typecheck');
+    console.log('✅ TypeScript passed');
 
-    run('yarn test --passWithNoTests');
+    run('npm test -- --passWithNoTests');
     console.log('✅ Tests passed');
-
-    return true;
   } catch (error) {
-    console.error('❌ Tests failed:', error.message);
-    return false;
+    console.log(`❌ Tests failed: ${error.message}`);
+    process.exit(1);
+  }
+
+  console.log('📦 Building package...');
+  try {
+    run('npm run prepare');
+    console.log('✅ Build completed');
+  } catch (error) {
+    console.log(`❌ Build failed: ${error.message}`);
+    process.exit(1);
   }
 }
 
@@ -100,14 +107,14 @@ function publishPackage(dryRun = false) {
   );
 
   try {
-    const command = dryRun ? 'yarn release --dry-run' : 'yarn release';
+    const command = dryRun ? 'npm run release -- --dry-run' : 'npm run release';
 
     if (dryRun) {
       run(command);
       console.log('✅ Dry-run completed successfully');
     } else {
       // For actual release, show output in real-time
-      const child = spawn('yarn', ['release'], {
+      const child = spawn('npm', ['run', 'release'], {
         stdio: 'inherit',
         shell: true,
       });
