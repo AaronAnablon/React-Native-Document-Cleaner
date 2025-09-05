@@ -53,12 +53,13 @@ export async function scanImage(
 ): Promise<ScanResult> {
   if (!DocumentScannerAi) {
     throw new Error(
+      'Failed to load. ' +
       'DocumentScannerAi native module is not available. ' +
       'Please ensure you have run "npx expo run:android" or "npx expo run:ios" ' +
       'to build the native code, and restart Metro bundler.'
     );
   }
-  
+
   const finalOptions = {
     ...options,
     // Use default model if none specified
@@ -80,7 +81,7 @@ export async function scanFrame(
       'to build the native code, and restart Metro bundler.'
     );
   }
-  
+
   const finalOptions = {
     ...options,
     // Use default model if none specified
