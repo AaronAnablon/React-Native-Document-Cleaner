@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - react-native-document-scanner-ai
     tags:
       - 'v*'
   workflow_dispatch:
