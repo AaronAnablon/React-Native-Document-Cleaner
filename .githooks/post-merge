@@ -1,0 +1,10 @@
+#!/bin/sh
+# Git post-merge hook to remind about publishing
+
+echo ""
+echo "🔔 Post-merge reminder:"
+echo "   If you've merged changes that should be published,"
+echo "   consider running: yarn auto-publish"
+echo "   or for Windows: yarn auto-publish:windows"
+echo "   Use --dry-run flag to see what would be published"
+echo ""

@@ -298,7 +298,24 @@ npx react-native run-android
 
 - [Development workflow](CONTRIBUTING.md#development-workflow)
 - [Sending a pull request](CONTRIBUTING.md#sending-a-pull-request)
+- [Automated publishing guide](PUBLISHING.md)
 - [Code of conduct](CODE_OF_CONDUCT.md)
+
+## Publishing
+
+This package uses automated publishing for releases. See [PUBLISHING.md](PUBLISHING.md) for detailed information.
+
+**Quick commands:**
+```bash
+# Check for changes and publish automatically
+yarn auto-publish
+
+# Preview what would be published (dry-run)
+yarn auto-publish:dry-run
+
+# Windows users
+yarn auto-publish:windows
+```
 
 ## License
 
