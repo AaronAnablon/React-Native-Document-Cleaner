@@ -2,7 +2,7 @@
 
 🚀 **High-Performance Document Scanner with AI**
 
-Advanced document scanning library for React Native with ONNX Runtime + OpenCV integration
+Advanced document scanning library for React Native with ONNX Runtime + OpenCV integration for real-time document detection, scanning, and processing.
 
 ## Features
 
@@ -10,24 +10,29 @@ Advanced document scanning library for React Native with ONNX Runtime + OpenCV i
 - Native C++ implementation with ONNX Runtime
 - Real-time document detection and segmentation
 - Optimized for mobile devices with hardware acceleration
+- TurboModule + JSI architecture for native performance
 
 🤖 **AI-Powered**
 - Uses ONNX Runtime for ML inference
-- Custom document segmentation models
+- Pre-trained YOLOv8 document segmentation models included
 - Advanced edge detection and perspective correction
+- Intelligent auto-capture functionality
 
 📱 **Cross-Platform**
-- iOS and Android support
-- TurboModule + JSI architecture
-- Consistent performance across platforms
+- iOS and Android support with consistent APIs
+- Automatic native dependency management
+- Camera integration with react-native-vision-camera
 
 🎯 **Smart Features**
 - Auto-capture when document is stable
 - Real-time preview with quadrilateral overlay
 - Multiple enhancement modes (B&W, contrast boost)
 - Batch processing support
+- Configurable confidence thresholds
 
 ## Installation
+
+### 1. Install the Package
 
 ```sh
 npm install react-native-document-scanner-ai
@@ -35,55 +40,76 @@ npm install react-native-document-scanner-ai
 yarn add react-native-document-scanner-ai
 ```
 
-📋 **[Complete Installation Guide](./INSTALLATION.md)** - Detailed setup instructions for iOS and Android
+### 2. Automatic Setup (Recommended)
 
-### Verification
+The library includes automated setup scripts that configure all required models and dependencies:
 
-After installation, verify everything is set up correctly:
+```sh
+# For Windows users
+npm run setup:windows
+
+# For macOS/Linux users  
+npm run setup:unix
+
+# Or use the cross-platform setup
+npx react-native-document-scanner-ai setup
+```
+
+This will:
+- ✅ Download and configure the ONNX model
+- ✅ Set up platform-specific dependencies  
+- ✅ Configure native module linking
+- ✅ Verify the installation
+
+### 3. Verification
+
+After installation, verify everything is working correctly:
 
 ```sh
 npx react-native-document-scanner-ai verify-setup
 ```
 
-### Quick Setup
+### 4. Manual Model Setup (If Needed)
 
-The library includes setup scripts that automatically configure the required models and dependencies:
+If automatic setup fails, you can manually generate the required ONNX model:
 
+**Using included scripts:**
 ```sh
-# For Windows
-npm run setup:windows
-
-# For macOS/Linux  
-npm run setup:unix
-```
-
-### Manual Model Setup
-
-If auto-setup fails, you can manually generate the required ONNX model:
-
-```sh
-# For Windows
+# Windows
 npm run generate:model:windows
 
-# For macOS/Linux
+# macOS/Linux
 npm run generate:model
 ```
 
-Or manually with Python:
+**Manual Python approach:**
 ```sh
 pip install ultralytics
-python -c "from ultralytics import YOLO; model = YOLO('yolov8n.pt'); model.export(format='onnx')"
+python scripts/generate_model.py
 ```
 
-The model will be automatically placed in the correct platform directories.
+**Direct ultralytics:**
+```sh
+pip install ultralytics
+python -c "from ultralytics import YOLO; model = YOLO('yolov8n.pt'); model.export(format='onnx', imgsz=640)"
+```
+
+The model will be automatically placed in the correct platform directories (`models/` for general use, `ios/` and `android/assets/` for platform-specific deployment).
+
+## Platform-Specific Setup
 
 ### iOS Setup
 
-1. The library automatically includes OpenCV and ONNX Runtime dependencies via CocoaPods
+1. **Automatic Dependencies**: The library automatically includes OpenCV and ONNX Runtime dependencies via CocoaPods
 
-2. The ONNX model is included with the library and will be automatically bundled
+2. **Install iOS Dependencies**:
+```sh
+cd ios && pod install && cd ..
+```
 
-3. Add camera permissions to `Info.plist`:
+3. **Model Configuration**: The ONNX model is automatically bundled with the library
+
+4. **Permissions**: Add camera permissions to your `Info.plist`:
 ```xml
 <key>NSCameraUsageDescription</key>
 <string>This app needs access to camera to scan documents</string>
@@ -91,106 +117,324 @@ The model will be automatically placed in the correct platform directories.
 <string>This app needs access to photo library to process images</string>
 ```
 
-4. For iOS, run:
-```sh
-cd ios && pod install
+5. **Additional Configuration** (if needed):
+```xml
+<!-- For camera access -->
+<key>NSCameraUsageDescription</key>
+<string>Camera access is required to scan documents</string>
+
+<!-- For saving processed images -->
+<key>NSPhotoLibraryAddUsageDescription</key>
+<string>Photo library access is needed to save scanned documents</string>
 ```
 
 ### Android Setup
 
-1. The library automatically includes OpenCV and ONNX Runtime dependencies
+1. **Automatic Dependencies**: The library automatically includes OpenCV and ONNX Runtime dependencies via Gradle
 
-2. The ONNX model is included with the library in the assets folder
+2. **Model Configuration**: The ONNX model is included in the assets folder and bundled automatically
 
-3. Add camera permissions to `AndroidManifest.xml`:
+3. **Permissions**: Add the following permissions to your `android/app/src/main/AndroidManifest.xml`:
 ```xml
 <uses-permission android:name="android.permission.CAMERA" />
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+<!-- For Android 13+ photo permissions -->
+<uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 ```
 
-4. Add to your `android/app/build.gradle` (if not already present):
+4. **Gradle Configuration**: Add to your `android/app/build.gradle` (if not already present):
 ```gradle
 android {
   packagingOptions {
     pickFirst '**/libc++_shared.so'
     pickFirst '**/libjsc.so'
+    pickFirst '**/libfbjni.so'
+  }
+  
+  // Increase heap size for ONNX processing
+  dexOptions {
+    javaMaxHeapSize "4g"
   }
 }
 ```
 
+5. **ProGuard Configuration** (for release builds):
+```proguard
+# Keep ONNX Runtime classes
+-keep class ai.onnxruntime.** { *; }
+-keep class com.documentscannerai.** { *; }
+
+# Keep OpenCV classes  
+-keep class org.opencv.** { *; }
+```
+
+## Post-Installation Steps
+
+### 1. Metro Configuration
+
+Ensure your `metro.config.js` includes the following to properly handle ONNX and model files:
+
+```javascript
+const { getDefaultConfig } = require('metro-config');
+
+module.exports = (async () => {
+  const config = await getDefaultConfig();
+  
+  // Add support for .onnx files
+  config.resolver.assetExts.push('onnx', 'pt');
+  
+  return config;
+})();
+```
+
+### 2. Camera Integration
+
+For camera functionality, install react-native-vision-camera:
+
+```sh
+npm install react-native-vision-camera
+# or
+yarn add react-native-vision-camera
+```
+
+### 3. Testing Installation
+
+Run the verification script to ensure everything is properly configured:
+
+```sh
+npx react-native-document-scanner-ai verify-setup
+```
+
+This will check:
+- ✅ Package installation
+- ✅ Model file presence
+- ✅ Platform dependencies
+- ✅ Permissions configuration
+- ✅ Build configuration
+
 ## Usage
 
+### Quick Start
+
+```tsx
+import { scanImage, scanFrame } from 'react-native-document-scanner-ai';
+
+// Scan a single image
+const result = await scanImage('file://path/to/image.jpg');
+console.log('Detected corners:', result.quadrilateral);
+console.log('Confidence:', result.confidence);
+```
+
 ### Basic Image Scanning
+
+Scan a static image file for document detection:
 
 ```tsx
 import { scanImage } from 'react-native-document-scanner-ai';
 
-const result = await scanImage('file://path/to/image.jpg', {
-  enhance: 'contrast',
-  saveOutput: true,
-  outputFormat: 'jpg',
-  outputQuality: 90,
-});
-
-console.log('Quadrilateral:', result.quadrilateral);
-console.log('Confidence:', result.confidence);
-console.log('Output path:', result.outputUri);
-```
-
-### Real-time Frame Processing
-
-```tsx
-import { scanFrame } from 'react-native-document-scanner-ai';
-import { useFrameProcessor } from 'react-native-vision-camera';
-
-const frameProcessor = useFrameProcessor((frame) => {
-  'worklet';
-  
-  const frameData = frame.toArrayBuffer();
-  const rgba = new Uint8Array(frameData);
-  
-  runOnJS(async () => {
-    const result = await scanFrame(rgba, frame.width, frame.height, {
-      autoCapture: true,
-      captureConfidence: 0.85,
-      captureConsecutiveFrames: 3,
+const scanDocument = async (imageUri: string) => {
+  try {
+    const result = await scanImage(imageUri, {
+      enhance: 'contrast',
       saveOutput: true,
+      outputFormat: 'jpg',
+      outputQuality: 90,
+      maxSize: 1024, // Resize for faster processing
     });
-    
-    if (result.outputUri) {
-      console.log('Auto-captured document:', result.outputUri);
+
+    if (result.confidence > 0.8) {
+      console.log('Document detected with high confidence!');
+      console.log('Corners:', result.quadrilateral);
+      console.log('Enhanced image saved at:', result.outputUri);
+    } else {
+      console.log('Low confidence detection, manual review needed');
     }
-  })();
-}, []);
+  } catch (error) {
+    console.error('Scanning failed:', error);
+  }
+};
 ```
 
-### Complete Camera Integration
+### Real-time Camera Integration
+
+Process camera frames in real-time for live document detection:
 
 ```tsx
-import React, { useRef } from 'react';
-import { Camera, useFrameProcessor } from 'react-native-vision-camera';
+import React, { useRef, useState } from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { Camera, useFrameProcessor, useCameraDevices } from 'react-native-vision-camera';
 import { scanFrame } from 'react-native-document-scanner-ai';
+import { runOnJS } from 'react-native-reanimated';
 
-function DocumentScanner() {
+function DocumentCameraScreen() {
   const camera = useRef<Camera>(null);
-  
+  const devices = useCameraDevices();
+  const device = devices.back;
+  const [detectedDocument, setDetectedDocument] = useState(null);
+
   const frameProcessor = useFrameProcessor((frame) => {
     'worklet';
-    // Real-time document detection logic
+    
+    // Convert frame to RGBA array
+    const frameData = frame.toArrayBuffer();
+    const rgba = new Uint8Array(frameData);
+    
+    // Process on JS thread
+    runOnJS(async (rgbaData: Uint8Array, width: number, height: number) => {
+      try {
+        const result = await scanFrame(rgbaData, width, height, {
+          autoCapture: true,
+          captureConfidence: 0.85,
+          captureConsecutiveFrames: 5, // Require 5 stable frames
+          maxProcessingFps: 10, // Limit processing to 10 FPS
+          saveOutput: true,
+        });
+        
+        if (result.outputUri) {
+          // Document auto-captured!
+          setDetectedDocument(result);
+          console.log('Auto-captured document:', result.outputUri);
+        }
+      } catch (error) {
+        console.error('Frame processing error:', error);
+      }
+    })(rgba, frame.width, frame.height);
   }, []);
 
+  const captureManually = async () => {
+    if (camera.current) {
+      const photo = await camera.current.takePhoto({
+        quality: 90,
+        enableAutoRedEyeReduction: true,
+      });
+      
+      const result = await scanImage(photo.path, {
+        enhance: 'contrast',
+        saveOutput: true,
+      });
+      
+      setDetectedDocument(result);
+    }
+  };
+
+  if (!device) {
+    return <Text>Camera not available</Text>;
+  }
+
   return (
-    <Camera
-      ref={camera}
-      device={device}
-      isActive={true}
-      frameProcessor={frameProcessor}
-      photo={true}
-    />
+    <View style={{ flex: 1 }}>
+      <Camera
+        ref={camera}
+        device={device}
+        isActive={true}
+        frameProcessor={frameProcessor}
+        photo={true}
+        style={{ flex: 1 }}
+      />
+      
+      <TouchableOpacity
+        onPress={captureManually}
+        style={{
+          position: 'absolute',
+          bottom: 50,
+          alignSelf: 'center',
+          backgroundColor: 'white',
+          padding: 15,
+          borderRadius: 50,
+        }}
+      >
+        <Text>📷 Capture</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 ```
+
+### Advanced Configuration
+
+Customize scanning behavior with detailed options:
+
+```tsx
+import { scanImage, ScanOptions } from 'react-native-document-scanner-ai';
+
+const advancedScanOptions: ScanOptions = {
+  // Model configuration
+  onnxModel: 'custom_model.onnx', // Use custom model
+  threshold: 0.5, // Segmentation sensitivity
+  
+  // Processing options
+  maxSize: 1024, // Max image dimension
+  enhance: 'bw', // Black & white enhancement
+  returnMask: true, // Get segmentation mask
+  
+  // Output configuration
+  saveOutput: true,
+  outputFormat: 'png',
+  outputQuality: 95,
+  
+  // Auto-capture settings
+  autoCapture: true,
+  captureConfidence: 0.9, // High confidence required
+  captureConsecutiveFrames: 8, // More stable frames
+  maxProcessingFps: 5, // Conservative processing rate
+};
+
+const result = await scanImage(imageUri, advancedScanOptions);
+
+// Access additional outputs
+if (result.maskUri) {
+  console.log('Segmentation mask saved at:', result.maskUri);
+}
+```
+
+### Batch Processing
+
+Process multiple images efficiently:
+
+```tsx
+const processBatch = async (imageUris: string[]) => {
+  const results = await Promise.all(
+    imageUris.map(uri => 
+      scanImage(uri, {
+        enhance: 'contrast',
+        maxSize: 512, // Smaller size for batch processing
+        saveOutput: false, // Skip saving for speed
+      })
+    )
+  );
+  
+  const validDocuments = results.filter(r => r.confidence > 0.7);
+  console.log(`Found ${validDocuments.length} valid documents`);
+  
+  return validDocuments;
+};
+```
+
+## Available Scripts
+
+The library provides several utility scripts for setup and management:
+
+### Setup Scripts
+- `npm run setup` - Cross-platform setup
+- `npm run setup:windows` - Windows-specific setup with PowerShell
+- `npm run setup:unix` - macOS/Linux setup with bash
+- `npx react-native-document-scanner-ai setup` - NPX setup command
+
+### Model Management
+- `npm run generate:model` - Generate ONNX model (Unix)
+- `npm run generate:model:windows` - Generate ONNX model (Windows)
+- `python scripts/generate_model.py` - Direct Python model generation
+
+### Verification
+- `npm run verify-setup` - Verify installation
+- `npx react-native-document-scanner-ai verify-setup` - NPX verification
+
+### Development
+- `npm run postinstall` - Run post-installation setup
+- `npm run clean` - Clean build directories
+- `npm run build:android` - Build Android example
+- `npm run build:ios` - Build iOS example
 
 ## API Reference
 
@@ -244,45 +488,120 @@ Processes a camera frame for real-time document detection.
 
 **Returns:** Promise resolving to scan result
 
-## ONNX Model Requirements
+## Troubleshooting
 
-The library expects an ONNX model with:
+### Common Issues
 
-- **Input:** `[1, 3, H, W]` tensor (RGB image, normalized 0-1)
-- **Output:** `[1, 1, H, W]` tensor (segmentation mask, 0-1 values)
+#### 1. Model Not Found Error
+```
+Error: ONNX model not found at path
+```
+**Solution:** Run the setup script to download the model:
+```sh
+npm run setup:windows  # Windows
+npm run setup:unix     # macOS/Linux
+```
 
-### Recommended Training Datasets
-- PubLayNet
-- DocLayNet
-- Custom document collections
+#### 2. Build Errors on Android
+```
+Error: Failed to resolve: ai.onnxruntime
+```
+**Solution:** Ensure your `android/app/build.gradle` includes the packaging options:
+```gradle
+android {
+  packagingOptions {
+    pickFirst '**/libc++_shared.so'
+    pickFirst '**/libjsc.so'
+  }
+}
+```
 
-### Model Optimization
-- Use ONNX Runtime optimization tools
-- Consider quantization for mobile deployment
-- Test inference speed on target devices
+#### 3. iOS Pod Install Issues
+```
+[!] CocoaPods could not find compatible versions for pod "ONNX"
+```
+**Solution:** Update CocoaPods and clear cache:
+```sh
+cd ios
+rm -rf Pods Podfile.lock
+pod install --repo-update
+```
+
+#### 4. Camera Permission Denied
+**Solution:** Ensure permissions are properly configured in your platform files and request permissions at runtime.
+
+#### 5. Performance Issues
+- Reduce `maxSize` option for faster processing
+- Lower `maxProcessingFps` for real-time processing
+- Use `enhance: 'none'` to skip post-processing
+
+### Getting Help
+
+1. **Check Setup**: Run `npx react-native-document-scanner-ai verify-setup`
+2. **Review Logs**: Enable verbose logging in development
+3. **Platform Issues**: Check platform-specific setup instructions
+4. **Create Issue**: [GitHub Issues](https://github.com/AaronAnablon/React-Native-Document-Cleaner/issues)
 
 ## Performance Tips
 
-1. **Image Size:** Use `maxSize` option to limit processing resolution
-2. **Frame Rate:** Set `maxProcessingFps` to throttle real-time processing
-3. **Model Selection:** Choose lightweight models for real-time use
-4. **Threading:** Processing runs on background threads automatically
+1. **Image Size**: Use `maxSize` option to limit processing resolution (recommended: 1024px)
+2. **Frame Rate**: Set `maxProcessingFps` to throttle real-time processing (recommended: 5-10 FPS)
+3. **Model Selection**: The included YOLOv8n model is optimized for mobile devices
+4. **Threading**: Processing runs on background threads automatically
+5. **Memory**: Enable `returnMask: false` unless segmentation masks are needed
+6. **Auto-capture**: Use higher `captureConsecutiveFrames` for more stable captures
+
+## Model Information
+
+### Included Models
+
+- **document_segmentation.onnx**: Pre-trained YOLOv8n model for document detection
+- **Input Format**: RGB images, normalized to [0,1], 640x640 resolution
+- **Output Format**: Segmentation masks with confidence scores
+- **Model Size**: ~6MB (optimized for mobile)
+
+### Custom Models
+
+You can use custom ONNX models by specifying the `onnxModel` path:
+
+```tsx
+const result = await scanImage(imageUri, {
+  onnxModel: 'path/to/custom_model.onnx',
+  threshold: 0.5,
+});
+```
+
+**Model Requirements:**
+- **Input**: `[1, 3, H, W]` tensor (RGB image, normalized 0-1)
+- **Output**: `[1, 1, H, W]` tensor (segmentation mask, 0-1 values)
+- **Format**: ONNX with standard operators
+- **Optimization**: Use ONNX Runtime optimization tools for best performance
+
+### Training Custom Models
+
+For training custom document detection models:
+
+1. **Datasets**: Use DocLayNet, PubLayNet, or custom document datasets
+2. **Framework**: Train with YOLOv8, Detectron2, or similar frameworks
+3. **Export**: Convert to ONNX format with appropriate input/output shapes
+4. **Optimization**: Use ONNX Runtime tools for mobile optimization
 
 ## Example App
 
 The example app demonstrates all library features:
 
-- ✨ Real-time camera document detection
-- 🎯 Auto-capture functionality  
-- 🎨 Image enhancement modes
+- ✨ Real-time camera document detection with live preview
+- 🎯 Auto-capture functionality with confidence thresholds
+- 🎨 Image enhancement modes (B&W, contrast boost, original)
 - 📐 Quadrilateral overlay visualization
-- 📱 Cross-platform implementation
+- 📱 Cross-platform implementation (iOS & Android)
+- 🔧 Configuration options and performance tuning
 
 **Run the example:**
 
 ```sh
-git clone https://github.com/aaron/react-native-document-scanner-ai.git
-cd react-native-document-scanner-ai/example
+git clone https://github.com/AaronAnablon/React-Native-Document-Cleaner.git
+cd React-Native-Document-Cleaner/example
 npm install
 
 # iOS
@@ -291,6 +610,100 @@ npx react-native run-ios
 
 # Android  
 npx react-native run-android
+```
+
+## File Structure
+
+When properly installed, your project should include:
+
+```
+your-project/
+├── node_modules/
+│   └── react-native-document-scanner-ai/
+│       ├── lib/                    # Compiled TypeScript
+│       ├── src/                    # Source TypeScript files
+│       ├── android/                # Android native code
+│       ├── ios/                    # iOS native code
+│       ├── cpp/                    # C++ core implementation
+│       ├── models/                 # ONNX models
+│       │   └── document_segmentation.onnx
+│       ├── assets/                 # Additional assets
+│       │   └── yolov8n.pt         # Training checkpoint
+│       ├── scripts/                # Setup and utility scripts
+│       └── bin/                    # CLI tools
+├── android/
+│   └── app/
+│       └── src/main/assets/        # Android model deployment
+│           └── document_segmentation.onnx
+└── ios/
+    └── document_segmentation.onnx  # iOS model deployment
+```
+
+## Package Information
+
+### Included Files
+
+The npm package includes:
+- ✅ Compiled JavaScript/TypeScript libraries
+- ✅ Native Android and iOS code
+- ✅ C++ core implementation
+- ✅ Pre-trained ONNX models
+- ✅ Setup and verification scripts
+- ✅ CLI tools for easy management
+- ✅ Documentation and examples
+
+### Version Information
+
+Check your installed version:
+```sh
+npm list react-native-document-scanner-ai
+```
+
+Update to latest:
+```sh
+npm update react-native-document-scanner-ai
+```
+
+## Quick Reference
+
+### Installation Commands
+```sh
+# Install package
+npm install react-native-document-scanner-ai
+
+# Setup (automated)
+npx react-native-document-scanner-ai setup
+
+# Verify installation
+npx react-native-document-scanner-ai verify-setup
+
+# Generate model (if needed)
+npx react-native-document-scanner-ai generate-model
+```
+
+### Platform Setup
+```sh
+# iOS
+cd ios && pod install
+
+# Android (permissions in AndroidManifest.xml)
+# Build configuration in build.gradle
+```
+
+### Basic Usage
+```tsx
+import { scanImage } from 'react-native-document-scanner-ai';
+
+const result = await scanImage('file://path/to/image.jpg', {
+  enhance: 'contrast',
+  saveOutput: true,
+});
+```
+
+### Camera Integration
+```tsx
+import { scanFrame } from 'react-native-document-scanner-ai';
+// Use with react-native-vision-camera frameProcessor
 ```
 
 
