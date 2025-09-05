@@ -41,13 +41,13 @@ jobs:
       - name: Run tests
         if: steps.changes.outputs.has_changes == 'true'
         run: |
-          yarn lint
-          yarn typecheck
-          yarn test
+          npm run lint
+          npm run typecheck
+          npm test
 
       - name: Build package
         if: steps.changes.outputs.has_changes == 'true'
-        run: yarn prepare
+        run: npm run prepare
 
       - name: Setup Git
         if: steps.changes.outputs.has_changes == 'true'
@@ -62,14 +62,14 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           npm config set //registry.npmjs.org/:_authToken $NPM_TOKEN
-          yarn release
+          npm run release
 
       - name: Dry Run Release
         if: steps.changes.outputs.has_changes == 'true' && inputs.dry_run
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          yarn release --dry-run
+          npm run release -- --dry-run
 
   publish-on-tag:
     runs-on: ubuntu-latest
@@ -83,7 +83,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Build package
-        run: yarn prepare
+        run: npm run prepare
 
       - name: Publish to NPM
         env:

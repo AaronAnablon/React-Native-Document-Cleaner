@@ -6,7 +6,9 @@ import DocumentScannerAi from './NativeDocumentScannerAi';
  */
 export function getDefaultModelPath(): string {
   // This will resolve to the model in the npm package
-  return require.resolve('react-native-document-scanner-ai/models/document_segmentation.onnx');
+  return require.resolve(
+    'react-native-document-scanner-ai/models/document_segmentation.onnx'
+  );
 }
 
 /**
@@ -27,24 +29,24 @@ export function setupDocumentScanner(): void {
 
 export type ScanOptions = {
   onnxModel?: string;
-  threshold?: number;                  // segm mask threshold
-  maxSize?: number;                    // downscale for perf
+  threshold?: number; // segm mask threshold
+  maxSize?: number; // downscale for perf
   enhance?: 'none' | 'bw' | 'contrast';
-  returnMask?: boolean;                // return maskUri
-  saveOutput?: boolean;                // whether to save warped crop to disk
+  returnMask?: boolean; // return maskUri
+  saveOutput?: boolean; // whether to save warped crop to disk
   outputFormat?: 'jpg' | 'png';
-  outputQuality?: number;              // 0–100
-  autoCapture?: boolean;               // live mode: auto-capture stable doc
-  captureConfidence?: number;          // min confidence to trigger capture
-  captureConsecutiveFrames?: number;   // how many stable frames required
-  maxProcessingFps?: number;           // throttle for performance
+  outputQuality?: number; // 0–100
+  autoCapture?: boolean; // live mode: auto-capture stable doc
+  captureConfidence?: number; // min confidence to trigger capture
+  captureConsecutiveFrames?: number; // how many stable frames required
+  maxProcessingFps?: number; // throttle for performance
 };
 
 export type ScanResult = {
-  quadrilateral: [number, number][];   // detected quad
-  confidence: number;                  // segmentation confidence
-  outputUri?: string;                  // warped/cropped image if saveOutput:true
-  maskUri?: string;                    // optional mask file if returnMask:true
+  quadrilateral: [number, number][]; // detected quad
+  confidence: number; // segmentation confidence
+  outputUri?: string; // warped/cropped image if saveOutput:true
+  maskUri?: string; // optional mask file if returnMask:true
 };
 
 export async function scanImage(
@@ -54,16 +56,16 @@ export async function scanImage(
   if (!DocumentScannerAi) {
     throw new Error(
       'Failed to load. ' +
-      'DocumentScannerAi native module is not available. ' +
-      'Please ensure you have run "npx expo run:android" or "npx expo run:ios" ' +
-      'to build the native code, and restart Metro bundler.'
+        'DocumentScannerAi native module is not available. ' +
+        'Please ensure you have run "npx expo run:android" or "npx expo run:ios" ' +
+        'to build the native code, and restart Metro bundler.'
     );
   }
 
   const finalOptions = {
     ...options,
     // Use default model if none specified
-    onnxModel: options?.onnxModel || getDefaultModelPath()
+    onnxModel: options?.onnxModel || getDefaultModelPath(),
   };
   return DocumentScannerAi.scanImage(uri, finalOptions);
 }
@@ -77,15 +79,15 @@ export async function scanFrame(
   if (!DocumentScannerAi) {
     throw new Error(
       'DocumentScannerAi native module is not available. ' +
-      'Please ensure you have run "npx expo run:android" or "npx expo run:ios" ' +
-      'to build the native code, and restart Metro bundler.'
+        'Please ensure you have run "npx expo run:android" or "npx expo run:ios" ' +
+        'to build the native code, and restart Metro bundler.'
     );
   }
 
   const finalOptions = {
     ...options,
     // Use default model if none specified
-    onnxModel: options?.onnxModel || getDefaultModelPath()
+    onnxModel: options?.onnxModel || getDefaultModelPath(),
   };
   return DocumentScannerAi.scanFrame(rgba, width, height, finalOptions);
 }

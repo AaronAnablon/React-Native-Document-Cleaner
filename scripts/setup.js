@@ -5,15 +5,13 @@ const path = require('path');
 
 const isWindows = process.platform === 'win32';
 
-const setupScript = isWindows 
+const setupScript = isWindows
   ? path.join(__dirname, 'setup.ps1')
   : path.join(__dirname, 'setup.sh');
 
-const command = isWindows 
-  ? 'powershell'
-  : 'bash';
+const command = isWindows ? 'powershell' : 'bash';
 
-const args = isWindows 
+const args = isWindows
   ? ['-ExecutionPolicy', 'Bypass', '-File', setupScript]
   : [setupScript];
 
@@ -21,7 +19,7 @@ console.log(`Running setup script for ${isWindows ? 'Windows' : 'Unix'}...`);
 
 const child = spawn(command, args, {
   stdio: 'inherit',
-  shell: isWindows
+  shell: isWindows,
 });
 
 child.on('error', (error) => {

@@ -9,10 +9,10 @@ This repository includes automated publishing capabilities for the `react-native
 **Windows (PowerShell):**
 ```powershell
 # Check for changes and publish if found
-yarn auto-publish:windows
+npm run auto-publish:windows
 
 # Dry run to see what would be published
-yarn auto-publish:windows:dry-run
+npm run auto-publish:windows:dry-run
 
 # Force publish regardless of changes
 powershell -ExecutionPolicy Bypass -File scripts/auto-publish.ps1 -Force
@@ -21,13 +21,13 @@ powershell -ExecutionPolicy Bypass -File scripts/auto-publish.ps1 -Force
 **Unix/Linux/macOS:**
 ```bash
 # Check for changes and publish if found
-yarn auto-publish
+npm run auto-publish
 
 # Dry run to see what would be published
-yarn auto-publish:dry-run
+npm run auto-publish:dry-run
 
 # Force publish regardless of changes
-yarn auto-publish:force
+npm run auto-publish:force
 ```
 
 ### GitHub Actions (Automatic)
@@ -76,12 +76,12 @@ The automation scripts (`auto-publish.js` and `auto-publish.ps1`) perform these 
    - Checks for changes since last tag in `src/`, `lib/`, `package.json`
 
 2. **Quality Checks:**
-   - Runs ESLint (`yarn lint`)
-   - Runs TypeScript type checking (`yarn typecheck`)
-   - Runs Jest tests (`yarn test`)
+   - Runs ESLint (`npm run lint`)
+   - Runs TypeScript type checking (`npm run typecheck`)
+   - Runs Jest tests (`npm test`)
 
 3. **Build & Release:**
-   - Builds the package (`yarn prepare`)
+   - Builds the package (`npm run prepare`)
    - Uses `release-it` to create version, tag, and GitHub release
    - Publishes to NPM
 
@@ -98,11 +98,11 @@ The workflow (`.github/workflows/publish.yml`) triggers on:
 
 | Command | Description |
 |---------|-------------|
-| `yarn auto-publish` | Auto-detect changes and publish (Unix/Linux/macOS) |
-| `yarn auto-publish:dry-run` | Dry run mode - see what would happen |
-| `yarn auto-publish:force` | Force publish even without detected changes |
-| `yarn auto-publish:windows` | Auto-detect changes and publish (Windows) |
-| `yarn auto-publish:windows:dry-run` | Dry run mode for Windows |
+| `npm run auto-publish` | Auto-detect changes and publish (Unix/Linux/macOS) |
+| `npm run auto-publish:dry-run` | Dry run mode - see what would happen |
+| `npm run auto-publish:force` | Force publish even without detected changes |
+| `npm run auto-publish:windows` | Auto-detect changes and publish (Windows) |
+| `npm run auto-publish:windows:dry-run` | Dry run mode for Windows |
 
 ### Script Options
 
@@ -141,19 +141,19 @@ Options:
 
 1. **Check what would be released:**
    ```bash
-   yarn auto-publish:dry-run
+   npm run auto-publish:dry-run
    ```
 
 2. **Publish if everything looks good:**
    ```bash
-   yarn auto-publish
+   npm run auto-publish
    ```
 
 ### Emergency Release
 
 If you need to publish immediately:
 ```bash
-yarn auto-publish:force
+npm run auto-publish:force
 ```
 
 ## 🛠️ Configuration

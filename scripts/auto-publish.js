@@ -9,10 +9,10 @@ console.log('================================================\n');
 
 function run(command, options = {}) {
   try {
-    const result = execSync(command, { 
-      stdio: 'pipe', 
+    const result = execSync(command, {
+      stdio: 'pipe',
       encoding: 'utf8',
-      ...options 
+      ...options,
     });
     return result.trim();
   } catch (error) {
@@ -25,12 +25,16 @@ function hasChanges() {
     // Check if there are uncommitted changes
     const status = run('git status --porcelain');
     if (status) {
-      console.log('❌ You have uncommitted changes. Please commit or stash them first.');
+      console.log(
+        '❌ You have uncommitted changes. Please commit or stash them first.'
+      );
       return false;
     }
 
     // Check if we're ahead of origin
-    const ahead = run('git rev-list --count HEAD ^origin/main 2>/dev/null || echo "0"');
+    const ahead = run(
+      'git rev-list --count HEAD ^origin/main 2>/dev/null || echo "0"'
+    );
     if (parseInt(ahead) > 0) {
       console.log(`✅ Found ${ahead} commit(s) ahead of origin/main`);
       return true;
@@ -39,7 +43,9 @@ function hasChanges() {
     // Check if there are changes since last tag
     try {
       const lastTag = run('git describe --tags --abbrev=0 2>/dev/null');
-      const changesSinceTag = run(`git diff --quiet ${lastTag} HEAD -- src/ lib/ package.json; echo $?`);
+      const changesSinceTag = run(
+        `git diff --quiet ${lastTag} HEAD -- src/ lib/ package.json; echo $?`
+      );
       if (changesSinceTag === '1') {
         console.log(`✅ Found changes since last tag: ${lastTag}`);
         return true;
@@ -62,13 +68,13 @@ function runTests() {
   try {
     run('yarn lint');
     console.log('✅ Linting passed');
-    
+
     run('yarn typecheck');
     console.log('✅ Type checking passed');
-    
+
     run('yarn test --passWithNoTests');
     console.log('✅ Tests passed');
-    
+
     return true;
   } catch (error) {
     console.error('❌ Tests failed:', error.message);
@@ -89,11 +95,13 @@ function buildPackage() {
 }
 
 function publishPackage(dryRun = false) {
-  console.log(dryRun ? '🔍 Running dry-run release...' : '📦 Publishing package...');
-  
+  console.log(
+    dryRun ? '🔍 Running dry-run release...' : '📦 Publishing package...'
+  );
+
   try {
     const command = dryRun ? 'yarn release --dry-run' : 'yarn release';
-    
+
     if (dryRun) {
       run(command);
       console.log('✅ Dry-run completed successfully');
@@ -101,9 +109,9 @@ function publishPackage(dryRun = false) {
       // For actual release, show output in real-time
       const child = spawn('yarn', ['release'], {
         stdio: 'inherit',
-        shell: true
+        shell: true,
       });
-      
+
       return new Promise((resolve, reject) => {
         child.on('close', (code) => {
           if (code === 0) {
@@ -115,7 +123,7 @@ function publishPackage(dryRun = false) {
         });
       });
     }
-    
+
     return true;
   } catch (error) {
     console.error('❌ Publishing failed:', error.message);
@@ -170,14 +178,19 @@ Examples:
       process.exit(1);
     }
 
-    console.log(`\n🎉 ${dryRun ? 'Dry-run' : 'Publishing'} completed successfully!`);
-    
+    console.log(
+      `\n🎉 ${dryRun ? 'Dry-run' : 'Publishing'} completed successfully!`
+    );
+
     if (!dryRun) {
       console.log('\n📋 Next steps:');
-      console.log('  • Check the GitHub release: https://github.com/AaronAnablon/React-Native-Document-Cleaner/releases');
-      console.log('  • Verify the package on NPM: https://www.npmjs.com/package/react-native-document-scanner-ai');
+      console.log(
+        '  • Check the GitHub release: https://github.com/AaronAnablon/React-Native-Document-Cleaner/releases'
+      );
+      console.log(
+        '  • Verify the package on NPM: https://www.npmjs.com/package/react-native-document-scanner-ai'
+      );
     }
-
   } catch (error) {
     console.error('❌ Auto-publish failed:', error.message);
     process.exit(1);

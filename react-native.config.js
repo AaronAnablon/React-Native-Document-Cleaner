@@ -4,7 +4,8 @@ module.exports = {
       platforms: {
         android: {
           sourceDir: '../android',
-          packageImportPath: 'import com.documentscannerai.DocumentScannerAiPackage;',
+          packageImportPath:
+            'import com.documentscannerai.DocumentScannerAiPackage;',
         },
         ios: {
           podspecPath: '../DocumentScannerAi.podspec',

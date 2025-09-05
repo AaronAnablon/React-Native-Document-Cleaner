@@ -308,13 +308,13 @@ This package uses automated publishing for releases. See [PUBLISHING.md](PUBLISH
 **Quick commands:**
 ```bash
 # Check for changes and publish automatically
-yarn auto-publish
+npm run auto-publish
 
 # Preview what would be published (dry-run)
-yarn auto-publish:dry-run
+npm run auto-publish:dry-run
 
 # Windows users
-yarn auto-publish:windows
+npm run auto-publish:windows
 ```
 
 ## License
