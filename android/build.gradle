@@ -1,0 +1,72 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+def safeExtGet(prop, fallback) {
+    rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+}
+
+def reactNativeArchitectures() {
+    def value = project.getProperties().get("reactNativeArchitectures")
+    return value ? value.split(",") : ["armeabi-v7a", "x86", "x86_64", "arm64-v8a"]
+}
+
+android {
+    compileSdkVersion safeExtGet('compileSdkVersion', 34)
+    buildToolsVersion safeExtGet('buildToolsVersion', '34.0.0')
+
+    defaultConfig {
+        minSdkVersion safeExtGet('minSdkVersion', 21)
+        targetSdkVersion safeExtGet('targetSdkVersion', 34)
+        versionCode 1
+        versionName "1.0"
+
+        ndk {
+            abiFilters (*reactNativeArchitectures())
+        }
+
+        externalNativeBuild {
+            cmake {
+                cppFlags "-std=c++17"
+                arguments "-DANDROID_STL=c++_shared"
+            }
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "src/main/jni/CMakeLists.txt"
+            version "3.22.1"
+        }
+    }
+
+    packagingOptions {
+        pickFirst "lib/x86/libc++_shared.so"
+        pickFirst "lib/x86_64/libc++_shared.so"
+        pickFirst "lib/arm64-v8a/libc++_shared.so"
+        pickFirst "lib/armeabi-v7a/libc++_shared.so"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+
+repositories {
+    google()
+    mavenCentral()
+    maven { url 'https://www.jitpack.io' }
+    maven {
+        // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+        url("$rootDir/../node_modules/react-native/android")
+    }
+}
+
+dependencies {
+    implementation 'com.facebook.react:react-native:+'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+}

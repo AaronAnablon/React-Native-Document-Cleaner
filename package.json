@@ -1,0 +1,216 @@
+{
+  "name": "react-native-document-scanner-ai",
+  "version": "2.4.0",
+  "description": "High-performance document scanner with ONNX Runtime + OpenCV",
+  "main": "./lib/module/index.js",
+  "types": "./lib/typescript/src/index.d.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.tsx",
+      "import": {
+        "types": "./lib/typescript/src/index.d.ts",
+        "default": "./lib/module/index.js"
+      },
+      "require": {
+        "types": "./lib/typescript/src/index.d.ts", 
+        "default": "./lib/module/index.js"
+      },
+      "default": "./lib/module/index.js"
+    },
+    "./models/*": "./models/*",
+    "./assets/*": "./assets/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "lib", 
+    "android",
+    "ios",
+    "cpp",
+    "models",
+    "assets",
+    "scripts/verify-setup.js",
+    "scripts/postinstall.js",
+    "scripts/generate_model.py",
+    "scripts/generate_model.ps1",
+    "*.podspec",
+    "*.md",
+    "react-native.config.js",
+    "!ios/build",
+    "!android/build",
+    "!android/gradle",
+    "!android/gradlew",
+    "!android/gradlew.bat",
+    "!android/local.properties",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__",
+    "!**/.*"
+  ],
+  "scripts": {
+    "example": "yarn workspace react-native-document-scanner-ai-example",
+    "test": "jest",
+    "typecheck": "tsc",
+    "lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
+    "prepare": "bob build",
+    "release": "release-it --only-version",
+    "setup": "node scripts/setup.js",
+    "setup:windows": "powershell -ExecutionPolicy Bypass -File scripts/setup.ps1",
+    "setup:unix": "bash scripts/setup.sh",
+    "build:android": "cd example && npx react-native run-android",
+    "generate:model": "python scripts/generate_model.py",
+    "generate:model:windows": "powershell -ExecutionPolicy Bypass -File scripts/generate_model.ps1",
+    "build:ios": "cd example && npx react-native run-ios",
+    "verify-setup": "node scripts/verify-setup.js",
+    "postinstall": "node scripts/postinstall.js",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
+  },
+  "keywords": [
+    "react-native",
+    "document-scanner",
+    "opencv",
+    "onnx",
+    "computer-vision",
+    "ai",
+    "ml",
+    "camera",
+    "image-processing",
+    "turbo-module",
+    "jsi",
+    "ios",
+    "android"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aaron/react-native-document-scanner-ai.git"
+  },
+  "author": "Aaron <aaron@example.com> (https://github.com/aaron)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/aaron/react-native-document-scanner-ai/issues"
+  },
+  "homepage": "https://github.com/aaron/react-native-document-scanner-ai#readme",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "devDependencies": {
+    "@commitlint/config-conventional": "^19.6.0",
+    "@eslint/compat": "^1.2.7",
+    "@eslint/eslintrc": "^3.3.0",
+    "@eslint/js": "^9.22.0",
+    "@evilmartians/lefthook": "^1.5.0",
+    "@react-native-community/cli": "15.0.0-alpha.2",
+    "@react-native/babel-preset": "0.75.5",
+    "@react-native/eslint-config": "^0.78.0",
+    "@react-native/gradle-plugin": "0.75.5",
+    "@release-it/conventional-changelog": "^9.0.2",
+    "@types/jest": "^29.5.5",
+    "@types/react": "^18.2.6",
+    "commitlint": "^19.6.1",
+    "del-cli": "^5.1.0",
+    "eslint": "^9.22.0",
+    "eslint-config-prettier": "^10.1.1",
+    "eslint-plugin-prettier": "^5.2.3",
+    "jest": "^29.7.0",
+    "prettier": "^3.0.3",
+    "react": "18.3.1",
+    "react-native": "0.75.5",
+    "react-native-builder-bob": "^0.40.13",
+    "release-it": "^17.10.0",
+    "turbo": "^1.10.7",
+    "typescript": "^5.8.3"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*"
+  },
+  "workspaces": [
+    "example"
+  ],
+  "packageManager": "yarn@3.6.1",
+  "jest": {
+    "preset": "react-native",
+    "modulePathIgnorePatterns": [
+      "<rootDir>/example/node_modules",
+      "<rootDir>/lib/"
+    ]
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "release-it": {
+    "git": {
+      "commitMessage": "chore: release ${version}",
+      "tagName": "v${version}"
+    },
+    "npm": {
+      "publish": true
+    },
+    "github": {
+      "release": true
+    },
+    "plugins": {
+      "@release-it/conventional-changelog": {
+        "preset": {
+          "name": "angular"
+        }
+      }
+    }
+  },
+  "prettier": {
+    "quoteProps": "consistent",
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5",
+    "useTabs": false
+  },
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "lib",
+    "targets": [
+      [
+        "module",
+        {
+          "esm": true
+        }
+      ],
+      [
+        "typescript",
+        {
+          "project": "tsconfig.build.json"
+        }
+      ]
+    ]
+  },
+  "codegenConfig": {
+    "name": "DocumentScannerAiSpec",
+    "type": "modules",
+    "jsSrcsDir": "src",
+    "android": {
+      "javaPackageName": "com.documentscannerai"
+    }
+  },
+  "react-native": {
+    "android": {
+      "sourceDir": "./android",
+      "packageImportPath": "import com.documentscannerai.DocumentScannerAiPackage;"
+    },
+    "ios": {
+      "podspecPath": "./DocumentScannerAi.podspec"
+    }
+  },
+  "create-react-native-library": {
+    "languages": "kotlin-objc",
+    "type": "turbo-module",
+    "version": "0.53.0"
+  },
+  "dependencies": {
+    "expo": "~53.0.22",
+    "react": "19.0.0",
+    "react-native": "0.79.6"
+  }
+}
