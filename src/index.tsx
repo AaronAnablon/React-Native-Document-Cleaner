@@ -1,6 +1,43 @@
 import DocumentScannerAi from './NativeDocumentScannerAi';
 
 /**
+ * Safe import helper for consumers
+ * Use this pattern in your app to avoid early initialization issues:
+ *
+ * @example
+ * ```typescript
+ * let scanImage: typeof import('react-native-document-scanner-ai').scanImage | null = null;
+ *
+ * try {
+ *   const scannerModule = require('react-native-document-scanner-ai');
+ *   scanImage = scannerModule.scanImage;
+ * } catch (error) {
+ *   console.warn('Failed to import react-native-document-scanner-ai:', error);
+ * }
+ * ```
+ */
+export function createSafeImport() {
+  try {
+    return {
+      scanImage,
+      scanFrame,
+      getDefaultModelPath,
+      setupDocumentScanner,
+      isAvailable: true,
+    };
+  } catch (error) {
+    console.warn('DocumentScannerAi is not available:', error);
+    return {
+      scanImage: null,
+      scanFrame: null,
+      getDefaultModelPath: null,
+      setupDocumentScanner: null,
+      isAvailable: false,
+    };
+  }
+}
+
+/**
  * Gets the default ONNX model path for document segmentation
  * @returns Path to the bundled ONNX model
  */
@@ -53,21 +90,23 @@ export async function scanImage(
   uri: string,
   options?: ScanOptions
 ): Promise<ScanResult> {
-  if (!DocumentScannerAi) {
-    throw new Error(
-      'Failed to load. ' +
-        'DocumentScannerAi native module is not available. ' +
-        'Please ensure you have run "npx expo run:android" or "npx expo run:ios" ' +
-        'to build the native code, and restart Metro bundler.'
-    );
+  try {
+    const finalOptions = {
+      ...options,
+      // Use default model if none specified
+      onnxModel: options?.onnxModel || getDefaultModelPath(),
+    };
+    return await DocumentScannerAi.scanImage(uri, finalOptions);
+  } catch (error) {
+    // Provide more helpful error messages
+    if (error instanceof Error) {
+      throw new Error(
+        `Failed to scan image: ${error.message}. ` +
+          'Make sure the app is properly built with native code and Metro is restarted.'
+      );
+    }
+    throw error;
   }
-
-  const finalOptions = {
-    ...options,
-    // Use default model if none specified
-    onnxModel: options?.onnxModel || getDefaultModelPath(),
-  };
-  return DocumentScannerAi.scanImage(uri, finalOptions);
 }
 
 export async function scanFrame(
@@ -76,18 +115,21 @@ export async function scanFrame(
   height: number,
   options?: ScanOptions
 ): Promise<ScanResult> {
-  if (!DocumentScannerAi) {
-    throw new Error(
-      'DocumentScannerAi native module is not available. ' +
-        'Please ensure you have run "npx expo run:android" or "npx expo run:ios" ' +
-        'to build the native code, and restart Metro bundler.'
-    );
+  try {
+    const finalOptions = {
+      ...options,
+      // Use default model if none specified
+      onnxModel: options?.onnxModel || getDefaultModelPath(),
+    };
+    return await DocumentScannerAi.scanFrame(rgba, width, height, finalOptions);
+  } catch (error) {
+    // Provide more helpful error messages
+    if (error instanceof Error) {
+      throw new Error(
+        `Failed to scan frame: ${error.message}. ` +
+          'Make sure the app is properly built with native code and Metro is restarted.'
+      );
+    }
+    throw error;
   }
-
-  const finalOptions = {
-    ...options,
-    // Use default model if none specified
-    onnxModel: options?.onnxModel || getDefaultModelPath(),
-  };
-  return DocumentScannerAi.scanFrame(rgba, width, height, finalOptions);
 }

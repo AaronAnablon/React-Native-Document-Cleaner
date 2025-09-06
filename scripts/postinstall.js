@@ -69,18 +69,28 @@ function copyModelFiles() {
       }
     }
 
-    console.log('🎉 react-native-document-scanner-ai setup complete!');
-    console.log(
-      '💡 If you encounter issues, run: npx react-native start --reset-cache'
-    );
+    console.log('🎉 react-native-document-scanner-ai installed!');
+    console.log('');
+    console.log('📦 Next steps:');
+    console.log('   1. Run setup: npx react-native-document-scanner-ai setup');
+    console.log('   2. Add camera permissions to your platform files');
+    console.log('   3. For iOS: cd ios && pod install');
+    console.log('');
+    console.log('💡 If you encounter issues:');
+    console.log('   • Run: npx react-native-document-scanner-ai verify-setup');
+    console.log('   • Check: npx react-native start --reset-cache');
   } catch (error) {
-    console.log('⚠️  Could not auto-copy ONNX model files.');
-    console.log(
-      '📖 Please manually copy models/document_segmentation.onnx to:'
-    );
+    console.log('⚠️  react-native-document-scanner-ai installed!');
+    console.log('');
+    console.log('📦 Setup required:');
+    console.log('   Run: npx react-native-document-scanner-ai setup');
+    console.log('');
+    console.log('📖 Manual setup (if auto-setup fails):');
+    console.log('   Copy models/document_segmentation.onnx to:');
     console.log('   - android/app/src/main/assets/ (for Android)');
     console.log('   - iOS project bundle (for iOS)');
-    console.log('Error:', error.message);
+    console.log('');
+    console.log('❓ Need help? Run: npx react-native-document-scanner-ai verify-setup');
   }
 }
 

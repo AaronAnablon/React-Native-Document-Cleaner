@@ -40,18 +40,20 @@ npm install react-native-document-scanner-ai
 yarn add react-native-document-scanner-ai
 ```
 
+> ⚠️ **Important**: Use `npx react-native-document-scanner-ai setup` commands from your app project, NOT `npm run setup:windows`. The npm run scripts are only for library development.
+
 ### 2. Automatic Setup (Recommended)
 
 The library includes automated setup scripts that configure all required models and dependencies:
 
 ```sh
 # For Windows users
-npm run setup:windows
+npx react-native-document-scanner-ai setup
 
 # For macOS/Linux users  
-npm run setup:unix
+npx react-native-document-scanner-ai setup
 
-# Or use the cross-platform setup
+# Or use the cross-platform setup (auto-detects your OS)
 npx react-native-document-scanner-ai setup
 ```
 
@@ -73,22 +75,13 @@ npx react-native-document-scanner-ai verify-setup
 
 If automatic setup fails, you can manually generate the required ONNX model:
 
-**Using included scripts:**
+**Using NPX commands:**
 ```sh
-# Windows
-npm run generate:model:windows
-
-# macOS/Linux
-npm run generate:model
+# Generate model (cross-platform)
+npx react-native-document-scanner-ai generate-model
 ```
 
 **Manual Python approach:**
-```sh
-pip install ultralytics
-python scripts/generate_model.py
-```
-
-**Direct ultralytics:**
 ```sh
 pip install ultralytics
 python -c "from ultralytics import YOLO; model = YOLO('yolov8n.pt'); model.export(format='onnx', imgsz=640)"
@@ -214,6 +207,74 @@ This will check:
 - ✅ Build configuration
 
 ## Usage
+
+### ⚠️ Important: Safe Import Pattern
+
+To avoid the "Tried to access a JS module before the React instance was fully set up" error, use one of these safe import patterns:
+
+#### Option 1: Lazy Loading (Recommended)
+```tsx
+import React, { useEffect, useState } from 'react';
+
+function MyComponent() {
+  const [scanImage, setScanImage] = useState(null);
+  const [scannerReady, setScannerReady] = useState(false);
+
+  useEffect(() => {
+    // Load the scanner module after React is ready
+    const loadScanner = async () => {
+      try {
+        const scannerModule = await import('react-native-document-scanner-ai');
+        setScanImage(() => scannerModule.scanImage);
+        setScannerReady(true);
+      } catch (error) {
+        console.warn('Failed to load document scanner:', error);
+      }
+    };
+
+    loadScanner();
+  }, []);
+
+  const handleScan = async (imageUri: string) => {
+    if (!scanImage || !scannerReady) {
+      throw new Error('Document scanner not ready');
+    }
+    return await scanImage(imageUri);
+  };
+
+  // Your component JSX...
+}
+```
+
+#### Option 2: Try-Catch Import
+```tsx
+let scanImage = null;
+
+try {
+  const scannerModule = require('react-native-document-scanner-ai');
+  scanImage = scannerModule.scanImage;
+} catch (error) {
+  console.warn('Failed to import react-native-document-scanner-ai:', error);
+}
+
+// Use scanImage safely
+if (scanImage) {
+  const result = await scanImage(imageUri);
+}
+```
+
+#### Option 3: Built-in Safe Import Helper
+```tsx
+import { createSafeImport } from 'react-native-document-scanner-ai';
+
+const scanner = createSafeImport();
+
+if (scanner.isAvailable && scanner.scanImage) {
+  const result = await scanner.scanImage(imageUri);
+}
+```
+
+> 📖 **More details**: See [SAFE_IMPORT.md](./SAFE_IMPORT.md) for comprehensive examples and troubleshooting.
 
 ### Quick Start
 
@@ -413,28 +474,48 @@ const processBatch = async (imageUris: string[]) => {
 
 ## Available Scripts
 
-The library provides several utility scripts for setup and management:
+The library provides different commands depending on whether you're a consumer or developer:
 
-### Setup Scripts
-- `npm run setup` - Cross-platform setup
-- `npm run setup:windows` - Windows-specific setup with PowerShell
-- `npm run setup:unix` - macOS/Linux setup with bash
-- `npx react-native-document-scanner-ai setup` - NPX setup command
+### For App Developers (Consumer Usage)
 
-### Model Management
-- `npm run generate:model` - Generate ONNX model (Unix)
-- `npm run generate:model:windows` - Generate ONNX model (Windows)
-- `python scripts/generate_model.py` - Direct Python model generation
+Use these NPX commands from your React Native project:
 
-### Verification
-- `npm run verify-setup` - Verify installation
-- `npx react-native-document-scanner-ai verify-setup` - NPX verification
+```sh
+# Setup the library and download models
+npx react-native-document-scanner-ai setup
 
-### Development
-- `npm run postinstall` - Run post-installation setup
-- `npm run clean` - Clean build directories
-- `npm run build:android` - Build Android example
-- `npm run build:ios` - Build iOS example
+# Verify installation is working
+npx react-native-document-scanner-ai verify-setup
+
+# Generate ONNX model (if needed)
+npx react-native-document-scanner-ai generate-model
+```
+
+**Note:** Do NOT use `npm run setup:windows` in your app - that only works during library development.
+
+### For Library Developers (Development)
+
+These scripts are available when developing the library itself:
+
+```sh
+# Setup Scripts (library development only)
+npm run setup                    # Cross-platform setup
+npm run setup:windows           # Windows-specific setup
+npm run setup:unix              # macOS/Linux setup
+
+# Model Management (library development only)
+npm run generate:model          # Generate ONNX model (Unix)
+npm run generate:model:windows  # Generate ONNX model (Windows)
+
+# Verification (library development only)
+npm run verify-setup            # Verify installation
+
+# Development Tools
+npm run clean                   # Clean build directories
+npm run build:android          # Build Android example
+npm run build:ios              # Build iOS example
+npm run auto-publish           # Automated publishing
+```
 
 ## API Reference
 
@@ -492,14 +573,61 @@ Processes a camera frame for real-time document detection.
 
 ### Common Issues
 
+#### 0. "Tried to access a JS module before the React instance was fully set up"
+```
+Tried to access a JS module before the React instance was fully set up. 
+Calls to ReactContext#getJSModule should only happen once initialize() has been called on your native module.
+```
+**Problem:** The native module is being accessed before React Native is fully initialized.
+
+**Solution:** Use the safe import patterns described in the [Usage section](#usage) above:
+
+1. **Lazy Loading (Recommended)**:
+   ```tsx
+   const [scanImage, setScanImage] = useState(null);
+   
+   useEffect(() => {
+     import('react-native-document-scanner-ai').then(module => {
+       setScanImage(() => module.scanImage);
+     });
+   }, []);
+   ```
+
+2. **Try-Catch Import**:
+   ```tsx
+   let scanImage = null;
+   try {
+     const module = require('react-native-document-scanner-ai');
+     scanImage = module.scanImage;
+   } catch (error) {
+     console.warn('Scanner not available:', error);
+   }
+   ```
+
+3. **Always restart Metro** after installing: `npx react-native start --reset-cache`
+
+#### 1. "Missing script" Error
+```
+npm error Missing script: "setup:windows"
+```
+**Problem:** You're trying to run library development scripts from your app project.
+
+**Solution:** Use NPX commands instead:
+```sh
+# ❌ Wrong (only works in library development)
+npm run setup:windows
+
+# ✅ Correct (use in your app)
+npx react-native-document-scanner-ai setup
+```
+
 #### 1. Model Not Found Error
 ```
 Error: ONNX model not found at path
 ```
 **Solution:** Run the setup script to download the model:
 ```sh
-npm run setup:windows  # Windows
-npm run setup:unix     # macOS/Linux
+npx react-native-document-scanner-ai setup
 ```
 
 #### 2. Build Errors on Android

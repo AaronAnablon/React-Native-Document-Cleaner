@@ -1,6 +1,6 @@
 {
   "name": "react-native-document-scanner-ai",
-  "version": "2.5.0",
+  "version": "2.5.2",
   "description": "High-performance document scanner with ONNX Runtime + OpenCV",
   "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",

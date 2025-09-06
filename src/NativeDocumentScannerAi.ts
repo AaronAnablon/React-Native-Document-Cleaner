@@ -32,15 +32,54 @@ export interface Spec {
   ): Promise<ScanResult>;
 }
 
-// Add error handling for development mode
-const DocumentScannerAiModule = NativeModules.DocumentScannerAi;
+// Safe lazy initialization to prevent early access to NativeModules
+let _documentScannerModule: Spec | null = null;
+let _moduleLoadError: Error | null = null;
 
-if (__DEV__ && !DocumentScannerAiModule) {
-  console.warn(
-    'DocumentScannerAi native module is not linked. ' +
-      'Please ensure you have run "npx expo run:android" or "npx expo run:ios" ' +
-      'to build the native code. Hot reloading may cause temporary context issues.'
-  );
+function getDocumentScannerModule(): Spec {
+  if (_moduleLoadError) {
+    throw _moduleLoadError;
+  }
+
+  if (_documentScannerModule) {
+    return _documentScannerModule;
+  }
+
+  try {
+    // Only access NativeModules when actually needed
+    const module = NativeModules.DocumentScannerAi;
+
+    if (!module) {
+      const error = new Error(
+        'DocumentScannerAi native module is not available. ' +
+          'Please ensure you have run "npx expo run:android" or "npx expo run:ios" ' +
+          'to build the native code, and restart Metro bundler.'
+      );
+      _moduleLoadError = error;
+      throw error;
+    }
+
+    _documentScannerModule = module as Spec;
+    return _documentScannerModule;
+  } catch (error) {
+    _moduleLoadError = error as Error;
+    throw error;
+  }
 }
 
-export default DocumentScannerAiModule as Spec;
+// Export a proxy that safely initializes the module when methods are called
+const DocumentScannerAiProxy: Spec = {
+  scanImage: (uri: string, options: ScanOptions): Promise<ScanResult> => {
+    return getDocumentScannerModule().scanImage(uri, options);
+  },
+  scanFrame: (
+    rgba: Uint8Array,
+    width: number,
+    height: number,
+    options: ScanOptions
+  ): Promise<ScanResult> => {
+    return getDocumentScannerModule().scanFrame(rgba, width, height, options);
+  },
+};
+
+export default DocumentScannerAiProxy;

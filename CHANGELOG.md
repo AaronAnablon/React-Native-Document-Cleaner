@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.5.2] - 2025-09-05
+
+### 🐛 Bug Fixes
+- **Critical Fix**: Resolved "Tried to access a JS module before the React instance was fully set up" error
+- **Safe Module Initialization**: Implemented lazy loading pattern for native module access
+- **Improved Error Handling**: Added comprehensive error boundaries and initialization checks
+
+### ✨ New Features
+- **Safe Import Helper**: Added `createSafeImport()` function for consumers
+- **Lazy Loading Support**: Native module is now only initialized when actually needed
+- **Enhanced Error Messages**: More helpful error messages with solutions
+
+### 📚 Documentation
+- **Safe Import Guide**: Added comprehensive `SAFE_IMPORT.md` with examples
+- **Updated README**: Added safe import patterns and troubleshooting section
+- **Consumer Examples**: Multiple safe import patterns for different use cases
+
+### 🔧 Technical Improvements
+- **Native Module Proxy**: Implemented proxy pattern to defer native module access
+- **Error Caching**: Prevents repeated initialization attempts after failure
+- **Development Warnings**: Better development-time warnings without breaking production
+
 ## [2.1.0] - 2025-09-05
 
 ### 🚀 Major Changes
