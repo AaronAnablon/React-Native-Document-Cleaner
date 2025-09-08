@@ -38,14 +38,54 @@ export function createSafeImport() {
 }
 
 /**
+ * Check if the native module is available and provide setup guidance
+ * @returns Object with availability status and setup instructions
+ */
+export function checkModuleAvailability(): {
+  isAvailable: boolean;
+  error?: string;
+  instructions?: string;
+} {
+  try {
+    // Try to access the native module
+    const { NativeModules } = require('react-native');
+    const module = NativeModules.DocumentScannerAi;
+    
+    if (!module) {
+      return {
+        isAvailable: false,
+        error: 'Native module not found',
+        instructions: 
+          'The native module is not available. This usually means:\n\n' +
+          '1. You are using Expo Go (managed workflow) - this library requires native code\n' +
+          '2. The app was not built with native compilation\n' +
+          '3. The native module was not properly linked\n\n' +
+          'Solution: Use "expo run:android" or "expo run:ios" instead of "expo start"'
+      };
+    }
+    
+    return {
+      isAvailable: true
+    };
+  } catch (error) {
+    return {
+      isAvailable: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      instructions: 'Failed to check native module availability'
+    };
+  }
+}
+
+/**
  * Gets the default ONNX model path for document segmentation
  * @returns Path to the bundled ONNX model
  */
 export function getDefaultModelPath(): string {
-  // This will resolve to the model in the npm package
-  return require.resolve(
-    'react-native-document-scanner-ai/models/document_segmentation.onnx'
-  );
+  // For React Native, we always use the same filename since the setup script
+  // copies the model to the correct platform-specific locations
+  // - Android: android/app/src/main/assets/
+  // - iOS: iOS bundle
+  return 'document_segmentation.onnx';
 }
 
 /**
@@ -100,9 +140,34 @@ export async function scanImage(
   } catch (error) {
     // Provide more helpful error messages
     if (error instanceof Error) {
+      let errorMessage = error.message;
+      
+      // Handle specific setup-related errors
+      if (errorMessage.includes('require.resolve') || 
+          errorMessage.includes('Default model path not available') ||
+          errorMessage.includes('native module is not available')) {
+        errorMessage = 
+          'Document scanner native module not available. This usually means:\n\n' +
+          'FOR EXPO MANAGED WORKFLOW:\n' +
+          '• This library requires native code and cannot run in Expo Go\n' +
+          '• You must use "expo run:android" or "expo run:ios" (development builds)\n' +
+          '• You cannot use "expo start" - it won\'t include native modules\n\n' +
+          'FOR EXPO BARE WORKFLOW / REACT NATIVE CLI:\n' +
+          '1. Run: npx react-native-document-scanner-ai setup\n' +
+          '2. Run: npx react-native-document-scanner-ai verify-setup\n' +
+          '3. Clean: rm -rf node_modules && npm install\n' +
+          '4. For Android: cd android && ./gradlew clean\n' +
+          '5. For iOS: cd ios && rm -rf build && pod install\n' +
+          '6. Rebuild: npx react-native run-android or npx react-native run-ios\n' +
+          '7. Restart Metro: npx react-native start --reset-cache\n\n' +
+          'VERIFICATION:\n' +
+          '• Make sure you see the native module in your build logs\n' +
+          '• For Android: check android/app/src/main/assets/ has the .onnx file\n' +
+          '• For iOS: check the .onnx file is in your iOS bundle';
+      }
+      
       throw new Error(
-        `Failed to scan image: ${error.message}. ` +
-          'Make sure the app is properly built with native code and Metro is restarted.'
+        `Failed to scan image: ${errorMessage}`
       );
     }
     throw error;
@@ -125,9 +190,34 @@ export async function scanFrame(
   } catch (error) {
     // Provide more helpful error messages
     if (error instanceof Error) {
+      let errorMessage = error.message;
+      
+      // Handle specific setup-related errors
+      if (errorMessage.includes('require.resolve') || 
+          errorMessage.includes('Default model path not available') ||
+          errorMessage.includes('native module is not available')) {
+        errorMessage = 
+          'Document scanner native module not available. This usually means:\n\n' +
+          'FOR EXPO MANAGED WORKFLOW:\n' +
+          '• This library requires native code and cannot run in Expo Go\n' +
+          '• You must use "expo run:android" or "expo run:ios" (development builds)\n' +
+          '• You cannot use "expo start" - it won\'t include native modules\n\n' +
+          'FOR EXPO BARE WORKFLOW / REACT NATIVE CLI:\n' +
+          '1. Run: npx react-native-document-scanner-ai setup\n' +
+          '2. Run: npx react-native-document-scanner-ai verify-setup\n' +
+          '3. Clean: rm -rf node_modules && npm install\n' +
+          '4. For Android: cd android && ./gradlew clean\n' +
+          '5. For iOS: cd ios && rm -rf build && pod install\n' +
+          '6. Rebuild: npx react-native run-android or npx react-native run-ios\n' +
+          '7. Restart Metro: npx react-native start --reset-cache\n\n' +
+          'VERIFICATION:\n' +
+          '• Make sure you see the native module in your build logs\n' +
+          '• For Android: check android/app/src/main/assets/ has the .onnx file\n' +
+          '• For iOS: check the .onnx file is in your iOS bundle';
+      }
+      
       throw new Error(
-        `Failed to scan frame: ${error.message}. ` +
-          'Make sure the app is properly built with native code and Metro is restarted.'
+        `Failed to scan frame: ${errorMessage}`
       );
     }
     throw error;
