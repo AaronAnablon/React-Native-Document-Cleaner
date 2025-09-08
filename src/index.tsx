@@ -45,33 +45,99 @@ export function checkModuleAvailability(): {
   isAvailable: boolean;
   error?: string;
   instructions?: string;
+  debugInfo?: any;
 } {
   try {
     // Try to access the native module
-    const { NativeModules } = require('react-native');
+    const { NativeModules, Platform } = require('react-native');
     const module = NativeModules.DocumentScannerAi;
+    
+    const debugInfo = {
+      platform: Platform.OS,
+      hasNativeModules: !!NativeModules,
+      allModules: Object.keys(NativeModules || {}),
+      targetModule: 'DocumentScannerAi',
+      moduleFound: !!module,
+    };
     
     if (!module) {
       return {
         isAvailable: false,
         error: 'Native module not found',
+        debugInfo,
         instructions: 
           'The native module is not available. This usually means:\n\n' +
-          '1. You are using Expo Go (managed workflow) - this library requires native code\n' +
-          '2. The app was not built with native compilation\n' +
-          '3. The native module was not properly linked\n\n' +
-          'Solution: Use "expo run:android" or "expo run:ios" instead of "expo start"'
+          '1. EXPO USERS: You are using Expo Go (managed workflow)\n' +
+          '   → This library requires native code and cannot run in Expo Go\n' +
+          '   → You must use "expo run:android" or "expo run:ios" (development builds)\n' +
+          '   → You cannot use "expo start" - it won\'t include native modules\n\n' +
+          '2. REACT NATIVE CLI USERS: The native module was not properly linked\n' +
+          '   → Run: npx react-native-document-scanner-ai setup\n' +
+          '   → Run: npx react-native-document-scanner-ai verify-setup\n' +
+          '   → Clean and rebuild your app\n\n' +
+          '3. The app was not built with native compilation\n' +
+          '   → For RN CLI: npx react-native run-android\n' +
+          '   → For Expo: expo run:android (not expo start)\n\n' +
+          `Available modules: ${Object.keys(NativeModules || {}).join(', ')}`
       };
     }
     
     return {
-      isAvailable: true
+      isAvailable: true,
+      debugInfo
     };
   } catch (error) {
     return {
       isAvailable: false,
       error: error instanceof Error ? error.message : 'Unknown error',
-      instructions: 'Failed to check native module availability'
+      instructions: 'Failed to check native module availability - React Native bridge may not be available',
+      debugInfo: { error: error }
+    };
+  }
+}
+
+/**
+ * Test if the native module can actually perform scanning operations
+ * @returns Promise with test results
+ */
+export async function testNativeModule(): Promise<{
+  success: boolean;
+  error?: string;
+  result?: any;
+}> {
+  try {
+    const availability = checkModuleAvailability();
+    if (!availability.isAvailable) {
+      return {
+        success: false,
+        error: 'Native module not available: ' + availability.error
+      };
+    }
+
+    // Try to call a simple method to see if the module actually works
+    const testOptions: ScanOptions = {
+      enhance: 'none',
+      saveOutput: false,
+      outputFormat: 'jpg',
+      outputQuality: 90,
+      threshold: 0.5,
+      maxSize: 1024,
+      returnMask: false,
+    };
+
+    // Create a small test image URI (base64 1x1 pixel)
+    const testImageUri = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
+    
+    const result = await DocumentScannerAi.scanImage(testImageUri, testOptions);
+    
+    return {
+      success: true,
+      result
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 }
